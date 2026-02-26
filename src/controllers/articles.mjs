@@ -1,27 +1,35 @@
-
+import { renderEjsPage } from '../utils/renderEjsPage.mjs';
 
 /* Articles */
 
-export const getArticlesHandler = (req, res) => {
-    res.render('articles/index', { title: 'Articles' });
+export const getArticlesHandler = async (req, res, next) => {
+    await renderEjsPage(res, next, 'articles/index', 'Articles');
 };
 
-export const postArticlesHandler = (req, res) => {
-    res.render('articles/post-result', { title: 'POST Article', payload: req.body });
+export const postArticlesHandler = async (req, res, next) => {
+    await renderEjsPage(res, next, 'articles/post-result', 'POST Article', { payload: req.body });
 };
 
-export const getArticleByIdHandler = (req, res) => {
-    res.render('articles/by-id', { title: 'Article by ID', id: req.params.id });
+export const getArticleByIdHandler = async (req, res, next) => {
+    await renderEjsPage(res, next, 'articles/by-id', 'Article by ID', { id: req.params.id });
 };
 
-export const putArticleByIdHandler = (req, res) => {
-    res.render('articles/update-result', { title: 'PUT article', method: 'PUT', id: req.params.id, payload: req.body });
+export const putArticleByIdHandler = async (req, res, next) => {
+    await renderEjsPage(res, next, 'articles/update-result', 'PUT article', {
+        method: 'PUT',
+        id: req.params.id,
+        payload: req.body
+    });
 };
 
-export const patchArticleByIdHandler = (req, res) => {
-    res.render('articles/update-result', { title: 'PATCH article', method: 'PATCH', id: req.params.id, payload: req.body });
+export const patchArticleByIdHandler = async (req, res, next) => {
+    await renderEjsPage(res, next, 'articles/update-result', 'PATCH article', {
+        method: 'PATCH',
+        id: req.params.id,
+        payload: req.body
+    });
 };
 
-export const deleteArticleByIdHandler = (req, res) => {
-    res.render('articles/delete-result', { title: 'DELETE article', id: req.params.id });
+export const deleteArticleByIdHandler = async (req, res, next) => {
+    await renderEjsPage(res, next, 'articles/delete-result', 'DELETE article', { id: req.params.id });
 };
