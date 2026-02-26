@@ -1,0 +1,7 @@
+extends ../layout
+
+block content
+  h1 User created
+  pre= JSON.stringify(payload, null, 2)
+  a(href='/users') Back to users
+

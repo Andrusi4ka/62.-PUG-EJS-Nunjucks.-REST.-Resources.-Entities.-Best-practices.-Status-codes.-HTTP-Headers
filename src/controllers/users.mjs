@@ -1,42 +1,31 @@
-import { renderPage } from '../utils/renderPage.mjs';
-
 /* Users */
 
 export const getUsersHandler = (req, res) => {
     console.log('Query:', req.query);
-    renderPage('Users', '<h1>Users page</h1>', res);
+    res.render('users/index', { title: 'Users' });
 };
 
 export const postUsersHandler = (req, res) => {
     console.log(req.body);
-
-    renderPage(
-        'User created',
-        `
-        <h1>User created</h1>
-        <pre>${JSON.stringify(req.body, null, 2)}</pre>
-        <a href="/users">Back to users</a>
-        `,
-        res
-    );
+    res.render('users/post-result', { title: 'User created', payload: req.body });
 };
 
 export const getUserByIdHandler = (req, res) => {
     console.log('Params:', { ...req.params });
-    renderPage('User by ID', `<h1>User ID: ${req.params.id}</h1>`, res);
+    res.render('users/by-id', { title: 'User by ID', id: req.params.id });
 };
 
 export const putUserByIdHandler = (req, res) => {
     console.log(req.body);
-    renderPage('PUT user', `<h1>PUT user ID: ${req.params.id}</h1>`, res);
+    res.render('users/update-result', { title: 'PUT user', method: 'PUT', id: req.params.id, payload: req.body });
 };
 
 export const patchUserByIdHandler = (req, res) => {
     console.log(req.body);
-    renderPage('PATCH user', `<h1>PATCH user ID: ${req.params.id}</h1>`, res);
+    res.render('users/update-result', { title: 'PATCH user', method: 'PATCH', id: req.params.id, payload: req.body });
 };
 
 export const deleteUserByIdHandler = (req, res) => {
     console.log(`Deleted user with ID: ${req.params.id}`);
-    renderPage('DELETE user', `<h1>DELETE user ID: ${req.params.id}</h1>`, res);
+    res.render('users/delete-result', { title: 'DELETE user', id: req.params.id });
 };

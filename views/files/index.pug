@@ -1,0 +1,24 @@
+extends ../layout
+
+block content
+  h1.mb-5 Files page
+  form.d-flex.gap-5(action='/files' method='POST' enctype='multipart/form-data')
+    input#filesInput.form-control(type='file' name='files' multiple required)
+    button.btn.btn-primary(type='submit') Upload
+  .mt-3
+    ul#selectedFilesList.list-group
+  script.
+    const input = document.getElementById('filesInput');
+    const list = document.getElementById('selectedFilesList');
+    input.addEventListener('change', () => {
+      list.innerHTML = '';
+      const files = Array.from(input.files);
+      if (files.length === 0) return;
+      for (const f of files) {
+        const li = document.createElement('li');
+        li.className = 'list-group-item';
+        li.textContent = f.name;
+        list.appendChild(li);
+      }
+    });
+
