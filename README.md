@@ -1,118 +1,115 @@
+﻿# Express Learning Project: Pug, EJS, REST, Cookies, JWT
 
-# Розширення існуючого Express сервера за допомогою мідлварів
+## Що це за проєкт
+Це навчальний Express-проєкт, у якому поєднані:
+- REST-підхід для маршрутів `users`, `articles`, `files`, `auth`
+- серверний рендеринг сторінок через **Pug** і **EJS**
+- робота з **cookies** (вибір теми сайту)
+- базова **JWT-авторизація** через `httpOnly` cookie
+- завантаження файлів через форму
 
-## Скриншот
-![screen](./assets/images/screen-video.gif)
+Проєкт показує, як розділяти код на `routes`, `controllers`, `middlewares`, `validators`, `utils`.
 
-## Огляд можливостей
+## Основні можливості
+- CRUD-маршрути для `users` і `articles`
+- Валідація вхідних даних через `celebrate` + `Joi`
+- Логування HTTP-запитів через middleware
+- Обробка помилок і 404 сторінки
+- Завантаження файлів через `formidable` у папку `uploads`
+- Збереження теми (`light`/`dark`) у cookie `theme`
+- JWT auth:
+  - `POST /auth/register`
+  - `POST /auth/login`
+  - `GET /auth/me` (захищений)
+  - `POST /auth/logout` (захищений)
 
-Цей проект — приклад сучасного Express-сервера з модульною структурою, middleware та валідацією. Основні можливості:
+## Логіка виконання
+1. Запит приходить у `src/app.mjs`.
+2. Підключаються middleware:
+- `express.static` (статичні файли)
+- `cookie-parser` (читання cookies)
+- `express.json` / `express.urlencoded` (парсинг body)
+- middleware теми (кладе `theme` і `currentPath` у `res.locals`)
+- `logger`
+3. Далі запит іде в головний роутер `src/routes/root.mjs`.
+4. Роутер перенаправляє на потрібний модуль (`users`, `articles`, `files`, `auth`).
+5. Якщо для маршруту є валідація або JWT-перевірка, вона виконується перед контролером.
+6. Контролер повертає HTML (Pug/EJS) або JSON.
+7. Якщо сталася помилка, її ловить `errorHandler`, якщо маршрут не знайдено - `notFoundHtmlHandler`.
 
-- CRUD-операції для ресурсів **Users** та **Articles** (отримання, створення, оновлення, видалення)
-- Валідація даних через Joi (celebrate)
-- Логування HTTP-запитів
-- Обробка помилок та 404-сторінки
-- Завантаження файлів через форму (formidable)
-- Розділення логіки на контролери, роутери, middleware
-- Рендеринг сторінок через шаблон layout.html
+## Рендеринг сторінок
+- **Pug**: основні сторінки (`views/...`) та layout `views/layout.pug`
+- **EJS**: сторінки `articles` через helper `src/utils/renderEjsPage.mjs` і layout `views-ejs/layout.ejs`
 
-## Логіка та архітектура
+## Авторизація JWT
+- Під час `register/login` генерується JWT.
+- Токен зберігається в cookie `accessToken` з параметрами:
+  - `httpOnly: true`
+  - `sameSite: 'lax'`
+  - `secure: true` лише у production
+- Захищені маршрути проходять через middleware `middlewares/authenticateJwt.mjs`.
 
-- **app.mjs** — точка входу, створює сервер, підключає middleware, роутери, обробники помилок
-- **routes/** — маршрутизація для Users, Articles, Files, кореневого маршруту
-- **controllers/** — логіка обробки запитів для кожного ресурсу
-- **middlewares/** — логування, обробка помилок, 404
-- **validators/** — Joi-схеми для валідації запитів
-- **public/** — статичні файли, layout.html, 404.html
-- **uploads/** — збереження завантажених файлів
-- **utils/renderPage.mjs** — рендеринг сторінок із шаблону
+Важливо: зараз користувачі для auth зберігаються в пам'яті (`src/data/authUsers.mjs`), тобто після перезапуску сервера вони скидаються.
 
-### Основний стек:
-- Node.js, Express, ES Modules
-- celebrate (Joi), formidable
-- nodemon (dev)
+## Робота з темою через Cookies
+- У layout є форма перемикання теми (`light` / `dark`).
+- `POST /theme` зберігає вибір у cookie `theme`.
+- При наступних запитах тема читається з cookies і підставляється у шаблон.
 
-## Структура проекту
+## Маршрути
+### Root
+- `GET /` - головна сторінка
+- `POST /theme` - зберегти тему в cookie
 
+### Users
+- `GET /users`
+- `POST /users`
+- `GET /users/:id`
+- `PUT /users/:id`
+- `PATCH /users/:id`
+- `DELETE /users/:id`
+
+### Articles
+- `GET /articles`
+- `POST /articles`
+- `GET /articles/:id`
+- `PUT /articles/:id`
+- `PATCH /articles/:id`
+- `DELETE /articles/:id`
+
+### Files
+- `GET /files` - форма завантаження
+- `POST /files` - завантаження файлів
+
+### Auth
+- `POST /auth/register`
+- `POST /auth/login`
+- `GET /auth/me` (protected)
+- `POST /auth/logout` (protected)
+
+## Бібліотеки ("плагіни"), які використані
+- `express` - сервер і маршрутизація
+- `pug` - шаблонізатор
+- `ejs` - шаблонізатор
+- `celebrate` + `joi` - валідація даних
+- `formidable` - завантаження файлів
+- `cookie-parser` - робота з cookies
+- `jsonwebtoken` - генерація/перевірка JWT
+- `bcryptjs` - хешування паролів
+- `nodemon` (dev) - автоперезапуск під час розробки
+
+## Запуск проєкту
+1. Встановити залежності:
+```bash
+npm install
 ```
-project/
-│
-├── src/
-│   ├── app.mjs                # Точка входу
-│   ├── routes/
-│   │   ├── root.mjs           # Головний роутер
-│   │   ├── users.mjs          # Users API
-│   │   ├── articles.mjs       # Articles API
-│   │   └── files.mjs          # Завантаження файлів
-│   ├── controllers/
-│   │   ├── root.mjs           # Головна сторінка
-│   │   ├── users.mjs          # Users logic
-│   │   ├── articles.mjs       # Articles logic
-│   │   └── files.mjs          # Files logic
-│   └── utils/
-│       └── renderPage.mjs     # Рендеринг сторінок
-│
-├── middlewares/
-│   ├── logger.mjs             # Логування
-│   ├── errorHandler.mjs       # Обробка помилок
-│   ├── notFoundHandler.mjs    # 404 JSON
-│   └── notFoundHtmlHandler.mjs# 404 HTML
-│
-├── validators/
-│   ├── userValidator.mjs      # Валідація Users
-│   └── articleValidator.mjs   # Валідація Articles
-│
-├── public/
-│   ├── layout.html            # Шаблон сторінки
-│   └── 404.html               # Красива 404
-│
-├── uploads/                   # Завантажені файли
-├── package.json
-└── README.md
+
+2. Запустити в dev-режимі:
+```bash
+npm run dev
 ```
 
-## Основні маршрути
-
-### Users (`/users`)
-- `GET /users` — список користувачів
-- `POST /users` — створити користувача (валідація)
-- `GET /users/:id` — отримати користувача за ID
-- `PUT /users/:id` — повністю оновити користувача (валідація)
-- `PATCH /users/:id` — частково оновити користувача (валідація)
-- `DELETE /users/:id` — видалити користувача
-
-### Articles (`/articles`)
-- `GET /articles` — список статей
-- `POST /articles` — створити статтю (валідація)
-- `GET /articles/:id` — отримати статтю за ID
-- `PUT /articles/:id` — повністю оновити статтю (валідація)
-- `PATCH /articles/:id` — частково оновити статтю (валідація)
-- `DELETE /articles/:id` — видалити статтю
-
-### Files (`/files`)
-- `GET /files` — форма для завантаження файлів
-- `POST /files` — завантаження файлів (formidable)
-
-### Кореневий маршрут (`/`)
-- `GET /` — головна сторінка
-
-## Запуск та встановлення
-
-1. Встановіть залежності:
-   ```bash
-   npm install
-   ```
-2. Запуск у dev-режимі (з nodemon):
-   ```bash
-   npm run dev
-   ```
-3. Або звичайний запуск:
-   ```bash
-   node src/app.mjs
-   ```
-
-## Технології
-- Node.js, Express
-- celebrate (Joi)
-- formidable
-- nodemon
+3. Відкрити в браузері:
+```text
+http://localhost:3000
+```
