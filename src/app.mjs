@@ -1,4 +1,5 @@
 import express from 'express'
+import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import router from './routes/root.mjs'
@@ -11,6 +12,7 @@ const app = express();
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 const publicDir = path.join(dirname, '../public');
+const THEMES = new Set(['light', 'dark']);
 
 app.set('view engine', 'pug');
 app.set('views', path.join(dirname, '../views'));
@@ -22,7 +24,16 @@ app.get('/favicon.ico', (req, res) => {
 });
 
 app.use(express.static(publicDir));
+app.use(cookieParser());
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+app.use((req, res, next) => {
+    const themeFromCookie = req.cookies?.theme;
+    res.locals.theme = THEMES.has(themeFromCookie) ? themeFromCookie : 'light';
+    res.locals.currentPath = req.originalUrl || '/';
+    next();
+});
 
 app.use(logger);
 

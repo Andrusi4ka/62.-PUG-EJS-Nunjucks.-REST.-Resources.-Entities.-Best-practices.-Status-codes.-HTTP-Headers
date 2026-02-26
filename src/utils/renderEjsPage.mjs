@@ -16,7 +16,12 @@ export const renderEjsPage = async (res, next, view, title, data = {}) => {
 
         const html = await ejs.renderFile(
             path.join(ejsViewsDir, 'layout.ejs'),
-            { title, body },
+            {
+                title,
+                body,
+                theme: res.locals.theme,
+                currentPath: res.locals.currentPath
+            },
             { async: true }
         );
 
