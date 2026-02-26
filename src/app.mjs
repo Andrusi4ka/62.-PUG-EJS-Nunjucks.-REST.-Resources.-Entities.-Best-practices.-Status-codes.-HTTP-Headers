@@ -10,11 +10,18 @@ const PORT = 3000;
 const app = express();
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
+const publicDir = path.join(dirname, '../public');
 
 app.set('view engine', 'pug');
 app.set('views', path.join(dirname, '../views'));
 
-app.use(express.static('public'))
+app.get('/favicon.ico', (req, res) => {
+    res.set('Cache-Control', 'public, max-age=0');
+    res.type('image/x-icon');
+    res.sendFile(path.join(publicDir, 'favicon.ico'));
+});
+
+app.use(express.static(publicDir));
 app.use(express.json());
 
 app.use(logger);
