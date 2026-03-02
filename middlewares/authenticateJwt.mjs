@@ -5,7 +5,7 @@ export const authenticateJwt = (req, res, next) => {
     const token = req.cookies?.[AUTH_COOKIE_NAME];
 
     if (!token) {
-        return res.status(401).json({ error: 'Authentication token is missing' });
+        return res.status(401).json({ error: 'Токен автентифікації відсутній' });
     }
 
     try {
@@ -19,6 +19,6 @@ export const authenticateJwt = (req, res, next) => {
 
         next();
     } catch {
-        return res.status(401).json({ error: 'Invalid or expired authentication token' });
+        return res.status(401).json({ error: 'Недійсний або прострочений токен автентифікації' });
     }
 };

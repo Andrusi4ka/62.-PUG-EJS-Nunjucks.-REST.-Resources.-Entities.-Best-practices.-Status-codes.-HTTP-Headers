@@ -1,7 +1,7 @@
 import formidable from 'formidable';
 
 export const getFilesHandler = (req, res) => {
-    res.render('files/index', { title: 'Files' });
+    res.render('files/index', { title: 'Файли' });
 };
 
 export const postFilesHandler = (req, res, next) => {
@@ -17,10 +17,10 @@ export const postFilesHandler = (req, res, next) => {
         const uploadedFiles = files.files;
 
         if (!uploadedFiles || (Array.isArray(uploadedFiles) && uploadedFiles.length === 0)) {
-            return res.render('files/no-files', { title: 'Error' });
+            return res.render('files/no-files', { title: 'Помилка' });
         }
 
-        res.render('files/upload-result', { title: 'Upload result', uploadedFiles });
+        res.render('files/upload-result', { title: 'Результат завантаження', uploadedFiles });
     });
 };
 

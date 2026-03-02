@@ -1,5 +1,52 @@
 extends layout
 
 block content
-  h1 Home page
+  h1 Головна сторінка
+  p.text-muted.mb-4 На цій сторінці явно показано JWT-авторизацію через cookie `accessToken` (httpOnly).
 
+  .jwt-demo
+    if authUser
+      .alert.alert-success.mb-3(role='alert')
+        strong Статус:
+        |  Авторизований
+      .card.mb-3
+        .card-body
+          h2.h5.mb-3 Поточний користувач
+          ul.list-group
+            li.list-group-item
+              strong ID:
+              |  #{authUser.id}
+            li.list-group-item
+              strong Ім'я:
+              |  #{authUser.name}
+            li.list-group-item
+              strong Ел. пошта:
+              |  #{authUser.email}
+      form(action='/auth/logout' method='post')
+        button.btn.btn-outline-danger(type='submit') Вийти (`POST /auth/logout`)
+    else
+      .alert.alert-warning.mb-3(role='alert')
+        strong Статус:
+        |  Гість (JWT cookie відсутній або недійсний)
+      .row.g-3
+        .col-12.col-lg-6
+          .card.h-100
+            .card-body
+              h2.h5 Реєстрація (`POST /auth/register`)
+              form.d-flex.flex-column.gap-2(action='/auth/register' method='post')
+                input.form-control(type='text' name='name' placeholder='Імʼя' required minlength='2' maxlength='50')
+                input.form-control(type='email' name='email' placeholder='Ел. пошта' required)
+                input.form-control(type='password' name='password' placeholder='Пароль (мін. 6)' required minlength='6' maxlength='128')
+                button.btn.btn-primary(type='submit') Зареєструватися
+        .col-12.col-lg-6
+          .card.h-100
+            .card-body
+              h2.h5 Вхід (`POST /auth/login`)
+              form.d-flex.flex-column.gap-2(action='/auth/login' method='post')
+                input.form-control(type='email' name='email' placeholder='Ел. пошта' required)
+                input.form-control(type='password' name='password' placeholder='Пароль' required minlength='6' maxlength='128')
+                button.btn.btn-primary(type='submit') Увійти
+
+  p.small.text-muted.mt-3
+    | Після успішної реєстрації або входу сервер повертає JSON і встановлює cookie.
+    |  Поверніться на цю сторінку, щоб побачити оновлений статус у хедері та в блоці вище.

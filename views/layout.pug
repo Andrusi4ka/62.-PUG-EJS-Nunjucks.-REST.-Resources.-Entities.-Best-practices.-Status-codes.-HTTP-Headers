@@ -5,30 +5,34 @@ html(lang='uk')
     meta(name='viewport' content='width=device-width, initial-scale=1')
     title= title
     link(rel='icon' type='image/x-icon' href='/favicon.ico?v=1')
+    link(rel='preconnect' href='https://fonts.googleapis.com')
+    link(rel='preconnect' href='https://fonts.gstatic.com' crossorigin)
+    link(href='https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;700&display=swap' rel='stylesheet')
     link(href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css' rel='stylesheet')
-    style.
-      body.theme-dark { background-color: #121212; color: #f1f3f5; }
-      body.theme-dark .navbar { background-color: #1d1f22 !important; border-color: #343a40 !important; }
-      body.theme-dark .nav-link, body.theme-dark .navbar-brand { color: #f1f3f5 !important; }
-      body.theme-dark .card, body.theme-dark .list-group-item { background-color: #1f1f1f; color: #f1f3f5; border-color: #343a40; }
+    link(href='/styles.css' rel='stylesheet')
   body(class=`theme-${theme}`)
-    nav.navbar.navbar-expand-lg.navbar-light.bg-light.border-bottom
+    nav.navbar.navbar-expand-lg.site-nav
       .container.gap-3
-        a.navbar-brand(href='/') Express App
-        ul.navbar-nav.me-auto.mb-2.mb-lg-0.d-flex.flex-row.gap-3
+        a.navbar-brand.brand-badge(href='/') Express застосунок
+        ul.navbar-nav.me-auto.mb-2.mb-lg-0.d-flex.flex-row.gap-2
           li.nav-item
-            a.nav-link.fw-bold(href='/') Home
+            a.nav-link.fw-bold(class=(currentPath === '/' ? 'is-active' : ''), href='/') Головна
           li.nav-item
-            a.nav-link.fw-bold(href='/users') Users
+            a.nav-link.fw-bold(class=(currentPath.startsWith('/users') ? 'is-active' : ''), href='/users') Користувачі
           li.nav-item
-            a.nav-link.fw-bold(href='/articles') Articles
+            a.nav-link.fw-bold(class=(currentPath.startsWith('/articles') ? 'is-active' : ''), href='/articles') Статті
           li.nav-item
-            a.nav-link.fw-bold(href='/files') Files
-        form.d-flex.gap-2.ms-auto(action='/theme' method='post')
+            a.nav-link.fw-bold(class=(currentPath.startsWith('/files') ? 'is-active' : ''), href='/files') Файли
+        .auth-pill.me-2
+          if authUser
+            span.badge.text-bg-success JWT: вхід виконано як #{authUser.email}
+          else
+            span.badge.text-bg-secondary JWT: гість
+        form.theme-form.d-flex.gap-2.ms-auto(action='/theme' method='post')
           input(type='hidden' name='redirectTo' value=currentPath || '/')
           select.form-select.form-select-sm(name='theme')
-            option(value='light' selected=theme === 'light') Light
-            option(value='dark' selected=theme === 'dark') Dark
-          button.btn.btn-sm.btn-outline-secondary(type='submit') Theme
-    .container.mt-4
+            option(value='light' selected=theme === 'light') Світла
+            option(value='dark' selected=theme === 'dark') Темна
+          button.btn.btn-sm.btn-outline-secondary(type='submit') Тема
+    .container.page-shell
       block content

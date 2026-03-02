@@ -28,7 +28,7 @@ export const registerHandler = async (req, res, next) => {
 
         const existingUser = findAuthUserByEmail(email);
         if (existingUser) {
-            return res.status(409).json({ error: 'User with this email already exists' });
+            return res.status(409).json({ error: 'Користувач з таким email вже існує' });
         }
 
         const passwordHash = await bcrypt.hash(password, 10);
@@ -38,7 +38,7 @@ export const registerHandler = async (req, res, next) => {
         res.cookie(AUTH_COOKIE_NAME, token, getAuthCookieOptions());
 
         res.status(201).json({
-            message: 'Registration successful',
+            message: 'Реєстрація успішна',
             user: toPublicUser(user)
         });
     } catch (error) {
@@ -52,19 +52,19 @@ export const loginHandler = async (req, res, next) => {
 
         const user = findAuthUserByEmail(email);
         if (!user) {
-            return res.status(401).json({ error: 'Invalid email or password' });
+            return res.status(401).json({ error: 'Невірний email або пароль' });
         }
 
         const passwordMatches = await bcrypt.compare(password, user.passwordHash);
         if (!passwordMatches) {
-            return res.status(401).json({ error: 'Invalid email or password' });
+            return res.status(401).json({ error: 'Невірний email або пароль' });
         }
 
         const token = createAccessToken(user);
         res.cookie(AUTH_COOKIE_NAME, token, getAuthCookieOptions());
 
         res.status(200).json({
-            message: 'Login successful',
+            message: 'Вхід успішний',
             user: toPublicUser(user)
         });
     } catch (error) {
