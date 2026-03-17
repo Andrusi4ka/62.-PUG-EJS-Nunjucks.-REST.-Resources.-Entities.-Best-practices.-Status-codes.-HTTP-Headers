@@ -22,13 +22,34 @@ const toPublicUser = (user) => ({
 
 const createAccessToken = (user) => jwt.sign(getTokenPayload(user), JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
+const wantsJson = (req) => req.accepts(['json', 'html']) === 'json';
+
+const respondAuthSuccess = (req, res, statusCode, message, user) => {
+    if (wantsJson(req)) {
+        return res.status(statusCode).json({
+            message,
+            user: toPublicUser(user)
+        });
+    }
+
+    return res.redirect(303, '/?authSuccess=' + encodeURIComponent(message));
+};
+
+const respondAuthError = (req, res, statusCode, message) => {
+    if (wantsJson(req)) {
+        return res.status(statusCode).json({ error: message });
+    }
+
+    return res.redirect(303, '/?authError=' + encodeURIComponent(message));
+};
+
 export const registerHandler = async (req, res, next) => {
     try {
         const { name, email, password } = req.body;
 
         const existingUser = findAuthUserByEmail(email);
         if (existingUser) {
-            return res.status(409).json({ error: 'Користувач з таким email вже існує' });
+            return respondAuthError(req, res, 409, 'Користувач з таким email вже існує');
         }
 
         const passwordHash = await bcrypt.hash(password, 10);
@@ -37,10 +58,7 @@ export const registerHandler = async (req, res, next) => {
 
         res.cookie(AUTH_COOKIE_NAME, token, getAuthCookieOptions());
 
-        res.status(201).json({
-            message: 'Реєстрація успішна',
-            user: toPublicUser(user)
-        });
+        return respondAuthSuccess(req, res, 201, 'Реєстрація успішна', user);
     } catch (error) {
         next(error);
     }
@@ -52,21 +70,18 @@ export const loginHandler = async (req, res, next) => {
 
         const user = findAuthUserByEmail(email);
         if (!user) {
-            return res.status(401).json({ error: 'Невірний email або пароль' });
+            return respondAuthError(req, res, 401, 'Невірний email або пароль');
         }
 
         const passwordMatches = await bcrypt.compare(password, user.passwordHash);
         if (!passwordMatches) {
-            return res.status(401).json({ error: 'Невірний email або пароль' });
+            return respondAuthError(req, res, 401, 'Невірний email або пароль');
         }
 
         const token = createAccessToken(user);
         res.cookie(AUTH_COOKIE_NAME, token, getAuthCookieOptions());
 
-        res.status(200).json({
-            message: 'Вхід успішний',
-            user: toPublicUser(user)
-        });
+        return respondAuthSuccess(req, res, 200, 'Вхід успішний', user);
     } catch (error) {
         next(error);
     }
@@ -85,5 +100,9 @@ export const logoutHandler = (req, res) => {
         secure: process.env.NODE_ENV === 'production'
     });
 
-    res.status(204).send();
+    if (wantsJson(req)) {
+        return res.status(200).json({ message: 'Вихід успішний' });
+    }
+
+    return res.redirect(303, '/?authSuccess=' + encodeURIComponent('Ви вийшли з акаунта'));
 };

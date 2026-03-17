@@ -1,5 +1,19 @@
 export const getRootHandler = (req, res) => {
-    res.render('index', { title: 'Головна' });
+    const authSuccess =
+        typeof req.query.authSuccess === 'string' && req.query.authSuccess.trim()
+            ? req.query.authSuccess.trim()
+            : null;
+
+    const authError =
+        typeof req.query.authError === 'string' && req.query.authError.trim()
+            ? req.query.authError.trim()
+            : null;
+
+    res.render('index', {
+        title: 'Головна',
+        authSuccess,
+        authError
+    });
 };
 
 export const postThemeHandler = (req, res) => {

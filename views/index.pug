@@ -4,6 +4,14 @@ block content
   h1 Головна сторінка
   p.text-muted.mb-4 На цій сторінці явно показано JWT-авторизацію через cookie `accessToken` (httpOnly).
 
+  if authSuccess
+    .alert.alert-success.mb-3(role='alert')= authSuccess
+
+  if authError
+    .alert.alert-danger.mb-3(role='alert')= authError
+
+  .alert.alert-info.d-none#authClientMessage(role='alert')
+
   .jwt-demo
     if authUser
       .alert.alert-success.mb-3(role='alert')
@@ -22,7 +30,7 @@ block content
             li.list-group-item
               strong Ел. пошта:
               |  #{authUser.email}
-      form(action='/auth/logout' method='post')
+      form(action='/auth/logout' method='post' data-auth-form='logout')
         button.btn.btn-outline-danger(type='submit') Вийти (`POST /auth/logout`)
     else
       .alert.alert-warning.mb-3(role='alert')
@@ -33,7 +41,7 @@ block content
           .card.h-100
             .card-body
               h2.h5 Реєстрація (`POST /auth/register`)
-              form.d-flex.flex-column.gap-2(action='/auth/register' method='post')
+              form.d-flex.flex-column.gap-2(action='/auth/register' method='post' data-auth-form='register')
                 input.form-control(type='text' name='name' placeholder='Імʼя' required minlength='2' maxlength='50')
                 input.form-control(type='email' name='email' placeholder='Ел. пошта' required)
                 input.form-control(type='password' name='password' placeholder='Пароль (мін. 6)' required minlength='6' maxlength='128')
@@ -42,11 +50,65 @@ block content
           .card.h-100
             .card-body
               h2.h5 Вхід (`POST /auth/login`)
-              form.d-flex.flex-column.gap-2(action='/auth/login' method='post')
+              form.d-flex.flex-column.gap-2(action='/auth/login' method='post' data-auth-form='login')
                 input.form-control(type='email' name='email' placeholder='Ел. пошта' required)
                 input.form-control(type='password' name='password' placeholder='Пароль' required minlength='6' maxlength='128')
                 button.btn.btn-primary(type='submit') Увійти
 
   p.small.text-muted.mt-3
-    | Після успішної реєстрації або входу сервер повертає JSON і встановлює cookie.
-    |  Поверніться на цю сторінку, щоб побачити оновлений статус у хедері та в блоці вище.
+    | Форми авторизації на цій сторінці відправляються через `fetch`, тому після входу, реєстрації або виходу інтерфейс оновлюється без показу сирого JSON.
+
+  script.
+    (() => {
+      const messageBox = document.getElementById('authClientMessage');
+      const forms = document.querySelectorAll('form[data-auth-form]');
+
+      const showMessage = (text, type) => {
+        if (!messageBox) return;
+        messageBox.textContent = text;
+        messageBox.className = `alert alert-${type} mb-3`;
+      };
+
+      const setPending = (form, pending) => {
+        const submitButton = form.querySelector('button[type="submit"]');
+        if (!submitButton) return;
+        submitButton.disabled = pending;
+        submitButton.dataset.originalText = submitButton.dataset.originalText || submitButton.textContent;
+        submitButton.textContent = pending ? 'Зачекайте...' : submitButton.dataset.originalText;
+      };
+
+      forms.forEach((form) => {
+        form.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          setPending(form, true);
+
+          try {
+            const body = new URLSearchParams(new FormData(form));
+            const response = await fetch(form.action, {
+              method: form.method.toUpperCase(),
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+              },
+              body: body.toString(),
+              credentials: 'same-origin'
+            });
+
+            const payload = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+              showMessage(payload.error || 'Сталася помилка під час авторизації', 'danger');
+              return;
+            }
+
+            const successMessage = payload.message || 'Операція виконана успішно';
+            showMessage(successMessage, 'success');
+            window.location.assign('/');
+          } catch (error) {
+            showMessage('Не вдалося виконати запит. Спробуйте ще раз.', 'danger');
+          } finally {
+            setPending(form, false);
+          }
+        });
+      });
+    })();
